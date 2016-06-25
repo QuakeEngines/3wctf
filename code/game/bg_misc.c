@@ -605,7 +605,7 @@ Only in CTF games
 		0,
 		IT_TEAM,
 		PW_REDFLAG,
-/* sounds */ ""
+/* sounds */ "sound/teamplay/flagtk_red"
 	},
 
 /*QUAKED team_CTF_blueflag (0 0 1) (-16 -16 -16) (16 16 16)
@@ -621,9 +621,25 @@ Only in CTF games
 		0,
 		IT_TEAM,
 		PW_BLUEFLAG,
-/* sounds */ ""
+/* sounds */ "sound/teamplay/flagtk_blu"
 	},
 
+	/*QUAKED team_CTF_greenflag (0 0 1) (-16 -16 -16) (16 16 16)
+Only in CTF games
+*/
+	{
+		"team_CTF_greenflag",
+		NULL,
+        { "models/flags/g_flag.md3",
+		NULL, NULL, NULL },
+/* icon */		"icons/iconf_grn1",
+/* pickup */	"Green Flag",
+		0,
+		IT_TEAM,
+		PW_GREENFLAG,
+/* sounds */ "sound/teamplay/flagtk_grn"
+	},
+	
 #ifdef MISSIONPACK
 /*QUAKED holdable_kamikaze (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 */
@@ -819,6 +835,20 @@ Only in One Flag CTF games
 		0,
 /* sounds */ ""
 	},
+	
+	{
+		"item_greencube",
+		"sound/misc/am_pkup.wav",
+        { "models/powerups/orb/g_orb.md3",
+		NULL, NULL, NULL },
+/* icon */		"icons/iconh_gorb",
+/* pickup */	"Green Cube",
+		0,
+		IT_TEAM,
+		0,
+/* sounds */ ""
+	},
+	
 /*QUAKED weapon_nailgun (.3 .3 1) (-16 -16 -16) (16 16 16) suspended
 */
 	{
@@ -1025,6 +1055,7 @@ const char *bg_netGametypeNames[GT_MAX_GAME_TYPE] = {
 	"SP",
 	"TeamDM",
 	"CTF",
+	"3WCTF"
 #ifdef MISSIONPACK
 	"1FCTF",
 	"Overload",
@@ -1038,6 +1069,7 @@ const char *bg_displayGametypeNames[GT_MAX_GAME_TYPE] = {
 	"Single Player",
 	"Team Deathmatch",
 	"Capture the Flag",
+	"3 Team/Way Capture the Flag",
 #ifdef MISSIONPACK
 	"One Flag CTF",
 	"Overload",
@@ -1350,22 +1382,31 @@ qboolean BG_CanItemBeGrabbed( int gametype, const entityState_t *ent, const play
 				if (item->giTag == PW_REDFLAG  && ps->powerups[PW_NEUTRALFLAG] ) {
 					return qtrue;
 				}
+			} else if (ps->persistant[PERS_TEAM] == TEAM_GREEN) {
+				if (item->giTag == PW_GREENFLAG  && ps->powerups[PW_NEUTRALFLAG] ) {
+					return qtrue;
+				}
 			}
 		}
 #endif
-		if( gametype == GT_CTF ) {
+		if( gametype == GT_CTF && gametype == GT_3WCTF ) {
 			// ent->modelindex2 is non-zero on items if they are dropped
 			// we need to know this because we can pick up our dropped flag (and return it)
 			// but we can't pick up our flag at base
 			if (ps->persistant[PERS_TEAM] == TEAM_RED) {
 				if (item->giTag == PW_BLUEFLAG ||
-					(item->giTag == PW_REDFLAG && ent->modelindex2) ||
-					(item->giTag == PW_REDFLAG && ps->powerups[PW_BLUEFLAG]) )
+					(item->giTag == PW_REDFLAG && PW_GREENFLAG && ent->modelindex2) ||
+					(item->giTag == PW_REDFLAG && ps->powerups[PW_BLUEFLAG] && ps->powerups[PW_GREENFLAG]) )
 					return qtrue;
 			} else if (ps->persistant[PERS_TEAM] == TEAM_BLUE) {
 				if (item->giTag == PW_REDFLAG ||
-					(item->giTag == PW_BLUEFLAG && ent->modelindex2) ||
-					(item->giTag == PW_BLUEFLAG && ps->powerups[PW_REDFLAG]) )
+					(item->giTag == PW_BLUEFLAG && PW_GREENFLAG && ent->modelindex2) ||
+					(item->giTag == PW_BLUEFLAG && ps->powerups[PW_REDFLAG] && ps->powerups[PW_GREENFLAG]) )
+					return qtrue;
+			} else if (ps->persistant[PERS_TEAM] == TEAM_GREEN) {
+				if (item->giTag == PW_GREENFLAG ||
+					(item->giTag == PW_BLUEFLAG && PW_REDFLAG && ent->modelindex2) ||
+					(item->giTag == PW_GREENFLAG && ps->powerups[PW_REDFLAG] && ps->powerups[PW_BLUEFLAG]) )
 					return qtrue;
 			}
 		}
