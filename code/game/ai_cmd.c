@@ -1716,24 +1716,27 @@ void BotMatch_CTF(bot_state_t *bs, bot_match_t *match) {
 		if (match->subtype & ST_GOTFLAG) {
 			if (!Q_stricmp(flag, "red")) {
 				bs->redflagstatus = 1;
-			if (!Q_stricmp(flag, "green")) {
+			}
+			else {
 				bs->greenflagstatus = 1;
+			}
+			else {
+				bs->blueflagstatus = 1;
+			}
 				if (BotTeam(bs) == TEAM_BLUE) {
 					BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 					bs->flagcarrier = PlayerFromName(netname);
 				}
 			}
 			else {
-				bs->blueflagstatus = 1;
-				bs->greenflagstatus = 1;
+				
 				if (BotTeam(bs) == TEAM_RED) {
 					BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 					bs->flagcarrier = PlayerFromName(netname);
 				}
 			}
 			else {
-				bs->blueflagstatus = 1;
-				bs->redflagstatus = 1;
+				
 				if (BotTeam(bs) == TEAM_GREEN) {
 					BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 					bs->flagcarrier = PlayerFromName(netname);
