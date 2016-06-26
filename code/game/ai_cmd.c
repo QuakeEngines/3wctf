@@ -822,13 +822,13 @@ void BotMatch_GetFlag(bot_state_t *bs, bot_match_t *match) {
 	char netname[MAX_MESSAGE_SIZE];
 	int playernum;
 
-	if (gametype == GT_CTF) {
-		if (!ctf_redflag.areanum || !ctf_blueflag.areanum)
+	if (gametype == GT_CTF && gametype == GT_3WCTF) {
+		if (!ctf_redflag.areanum || !ctf_blueflag.areanum || !ctf_greenflag.areanum)
 			return;
 	}
 #ifdef MISSIONPACK
 	else if (gametype == GT_1FCTF) {
-		if (!ctf_neutralflag.areanum || !ctf_redflag.areanum || !ctf_blueflag.areanum)
+		if (!ctf_neutralflag.areanum || !ctf_redflag.areanum || !ctf_blueflag.areanum || !ctf_greenflag.areanum)
 			return;
 	}
 #endif
@@ -872,12 +872,12 @@ void BotMatch_AttackEnemyBase(bot_state_t *bs, bot_match_t *match) {
 	char netname[MAX_MESSAGE_SIZE];
 	int playernum;
 
-	if (gametype == GT_CTF) {
+	if (gametype == GT_CTF && gametype == GT_3WCTF) {
 		BotMatch_GetFlag(bs, match);
 	}
 #ifdef MISSIONPACK
 	else if (gametype == GT_1FCTF || gametype == GT_OBELISK || gametype == GT_HARVESTER) {
-		if (!redobelisk.areanum || !blueobelisk.areanum)
+		if (!redobelisk.areanum || !blueobelisk.areanum || !greenobelisk.areanum)
 			return;
 	}
 #endif
@@ -919,7 +919,7 @@ void BotMatch_Harvest(bot_state_t *bs, bot_match_t *match) {
 	int playernum;
 
 	if (gametype == GT_HARVESTER) {
-		if (!neutralobelisk.areanum || !redobelisk.areanum || !blueobelisk.areanum)
+		if (!neutralobelisk.areanum || !redobelisk.areanum || !blueobelisk.areanum || !greenobelisk.areanum)
 			return;
 	}
 	else {
@@ -960,12 +960,12 @@ void BotMatch_RushBase(bot_state_t *bs, bot_match_t *match) {
 	int playernum;
 
 	if (gametype == GT_CTF) {
-		if (!ctf_redflag.areanum || !ctf_blueflag.areanum)
+		if (!ctf_redflag.areanum || !ctf_blueflag.areanum || !ctf_greenflag.areanum)
 			return;
 	}
 #ifdef MISSIONPACK
 	else if (gametype == GT_1FCTF || gametype == GT_HARVESTER) {
-		if (!redobelisk.areanum || !blueobelisk.areanum)
+		if (!redobelisk.areanum || !blueobelisk.areanum  || !greenobelisk.areanum)
 			return;
 	}
 #endif
@@ -1052,7 +1052,7 @@ void BotMatch_ReturnFlag(bot_state_t *bs, bot_match_t *match) {
 
 	//if not in CTF mode
 	if (
-		gametype != GT_CTF
+		gametype != GT_CTF && GT_3WCTF
 #ifdef MISSIONPACK
 		&& gametype != GT_1FCTF
 #endif
@@ -1496,7 +1496,7 @@ BotMatch_WhereAreYou
 */
 void BotMatch_WhereAreYou(bot_state_t *bs, bot_match_t *match) {
 	float dist, bestdist;
-	int i, redtt, bluett, playernum;
+	int i, redtt, bluett, greentt, playernum;
 	char *teamlocation;
 	char *bestitemname;
 	bot_goal_t goal;
@@ -1506,6 +1506,7 @@ void BotMatch_WhereAreYou(bot_state_t *bs, bot_match_t *match) {
 #ifdef MISSIONPACK
 		"Red Obelisk",
 		"Blue Obelisk",
+		"Green Obelisk",
 		"Neutral Obelisk",
 #endif
 		NULL
@@ -1552,7 +1553,7 @@ void BotMatch_WhereAreYou(bot_state_t *bs, bot_match_t *match) {
 		}
 	}
 	if (bestitemname) {
-		if (gametype == GT_CTF
+		if (gametype == GT_CTF || gametype == GT_3WCTF
 #ifdef MISSIONPACK
 			|| gametype == GT_1FCTF
 			|| gametype == GT_OBELISK
@@ -1569,6 +1570,7 @@ void BotMatch_WhereAreYou(bot_state_t *bs, bot_match_t *match) {
 			{
 				redtt = trap_AAS_AreaTravelTimeToGoalArea(bs->areanum, bs->origin, ctf_redflag.areanum, TFL_DEFAULT);
 				bluett = trap_AAS_AreaTravelTimeToGoalArea(bs->areanum, bs->origin, ctf_blueflag.areanum, TFL_DEFAULT);
+				greentt = trap_AAS_AreaTravelTimeToGoalArea(bs->areanum, bs->origin, ctf_greenflag.areanum, TFL_DEFAULT);
 			}
 
 			// unpatched q3 used 'ctflocation', some games still use it
@@ -1578,11 +1580,14 @@ void BotMatch_WhereAreYou(bot_state_t *bs, bot_match_t *match) {
 				teamlocation = "ctflocation";
 			}
 
-			if (redtt < (redtt + bluett) * 0.4) {
+			if (redtt < (redtt + bluett + greentt) * 0.4) {
 				BotAI_BotInitialChat(bs, teamlocation, bestitemname, "red", NULL);
 			}
-			else if (bluett < (redtt + bluett) * 0.4) {
+			else if (bluett < (redtt + bluett + greentt) * 0.4) {
 				BotAI_BotInitialChat(bs, teamlocation, bestitemname, "blue", NULL);
+			}
+			else if (greentt < (redtt + bluett + greentt) * 0.4) {
+				BotAI_BotInitialChat(bs, teamlocation, bestitemname, "green", NULL);
 			}
 			else {
 				BotAI_BotInitialChat(bs, "location", bestitemname, NULL);
@@ -1711,33 +1716,38 @@ void BotMatch_CTF(bot_state_t *bs, bot_match_t *match) {
 
 	char flag[128], netname[MAX_NETNAME];
 
-	if (gametype == GT_CTF && gametype == GT_3WCTF) {
+	if (gametype == GT_CTF) {
 		BotMatchVariable(match, FLAG, flag, sizeof(flag));
 		if (match->subtype & ST_GOTFLAG) {
 			if (!Q_stricmp(flag, "red")) {
 				bs->redflagstatus = 1;
-			}
-			else {
-				bs->greenflagstatus = 1;
-			}
-			else {
-				bs->blueflagstatus = 1;
-			}
 				if (BotTeam(bs) == TEAM_BLUE) {
+					BotMatchVariable(match, NETNAME, netname, sizeof(netname));
+					bs->flagcarrier = PlayerFromName(netname);
+				}	
+				else if (BotTeam(bs) == TEAM_GREEN) {
 					BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 					bs->flagcarrier = PlayerFromName(netname);
 				}
 			}
-			else {
-				
+			else if (!Q_stricmp(flag, "blue")) {
+				bs->blueflagstatus = 1;
 				if (BotTeam(bs) == TEAM_RED) {
 					BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 					bs->flagcarrier = PlayerFromName(netname);
 				}
+				else if (BotTeam(bs) == TEAM_GREEN) {
+					BotMatchVariable(match, NETNAME, netname, sizeof(netname));
+					bs->flagcarrier = PlayerFromName(netname);
+				}
 			}
-			else {
-				
-				if (BotTeam(bs) == TEAM_GREEN) {
+			else if (!Q_stricmp(flag, "green")) {
+				bs->greenflagstatus = 1;
+				if (BotTeam(bs) == TEAM_RED) {
+					BotMatchVariable(match, NETNAME, netname, sizeof(netname));
+					bs->flagcarrier = PlayerFromName(netname);
+				}
+				else if (BotTeam(bs) == TEAM_BLUE) {
 					BotMatchVariable(match, NETNAME, netname, sizeof(netname));
 					bs->flagcarrier = PlayerFromName(netname);
 				}
@@ -1754,9 +1764,8 @@ void BotMatch_CTF(bot_state_t *bs, bot_match_t *match) {
 		}
 		else if (match->subtype & ST_RETURNEDFLAG) {
 			if (!Q_stricmp(flag, "red")) bs->redflagstatus = 0;
-			else bs->blueflagstatus = 0;
-			if (!Q_stricmp(flag, "green")) bs->greenflagstatus = 0;
-			else bs->blueflagstatus = 0;
+			else if (!Q_stricmp(flag, "blue")) bs->blueflagstatus = 0;
+			else if (!Q_stricmp(flag, "green")) bs->greenflagstatus = 0;
 			bs->flagstatuschanged = 1;
 		}
 	}
@@ -1838,14 +1847,14 @@ int BotMatchMessage(bot_state_t *bs, char *message) {
 			BotMatch_Patrol(bs, &match);
 			break;
 		}
-		//CTF, 3WCTF, & 1FCTF
+		//CTF & 1FCTF
 		case MSG_GETFLAG:				//ctf get the enemy flag
 		{
 			BotMatch_GetFlag(bs, &match);
 			break;
 		}
 #ifdef MISSIONPACK
-		//CTF, 3WCTF, 1FCTF, Obelisk & Harvester
+		//CTF & 1FCTF & Obelisk & Harvester
 		case MSG_ATTACKENEMYBASE:
 		{
 			BotMatch_AttackEnemyBase(bs, &match);
@@ -1858,25 +1867,25 @@ int BotMatchMessage(bot_state_t *bs, char *message) {
 			break;
 		}
 #endif
-		//CTF, 3WCTF, 1FCTF & Harvester
+		//CTF & 1FCTF & Harvester
 		case MSG_RUSHBASE:				//ctf rush to the base
 		{
 			BotMatch_RushBase(bs, &match);
 			break;
 		}
-		//CTF, 3WCTF, & 1FCTF
+		//CTF & 1FCTF
 		case MSG_RETURNFLAG:
 		{
 			BotMatch_ReturnFlag(bs, &match);
 			break;
 		}
-		//CTF, 3WCTF, 1FCTF, Obelisk & Harvester
+		//CTF & 1FCTF & Obelisk & Harvester
 		case MSG_TASKPREFERENCE:
 		{
 			BotMatch_TaskPreference(bs, &match);
 			break;
 		}
-		//CTF, 3WCTF, & 1FCTF
+		//CTF & 1FCTF
 		case MSG_CTF:
 		{
 			BotMatch_CTF(bs, &match);
