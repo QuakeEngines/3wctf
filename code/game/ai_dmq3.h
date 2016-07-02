@@ -196,9 +196,14 @@ void BotMapScripts(bot_state_t *bs);
 #define CTF_FLAG_NONE		0
 #define CTF_FLAG_RED		1
 #define CTF_FLAG_BLUE		2
+#define CTF_FLAG_GREEN		3
+#define CTF_FLAG_WHITE		4
 //CTF skins
 #define CTF_SKIN_REDTEAM	"red"
 #define CTF_SKIN_BLUETEAM	"blue"
+#define CTF_SKIN_GREENTEAM	"green"
+#define CTF_ALTSKIN_GREENTEAM "green_alt"
+#define CTF_SKIN_WHITETEAM	"default"
 
 extern int gametype;		//game type
 extern int maxplayers;		//maximum number of players
@@ -215,9 +220,11 @@ extern vmCvar_t bot_offhandgrapple;
 
 extern bot_goal_t ctf_redflag;
 extern bot_goal_t ctf_blueflag;
+extern bot_goal_t ctf_greenflag;
 #ifdef MISSIONPACK
 extern bot_goal_t ctf_neutralflag;
 extern bot_goal_t redobelisk;
 extern bot_goal_t blueobelisk;
+extern bot_goal_t greenobelisk;
 extern bot_goal_t neutralobelisk;
 #endif

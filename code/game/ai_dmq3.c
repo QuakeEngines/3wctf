@@ -179,16 +179,24 @@ BotOppositeTeam
 */
 int BotOppositeTeam(bot_state_t *bs) {
 	switch(BotTeam(bs)) {
+	if ( !g_redenemyteam.integer == 0 ) {
 		case TEAM_RED: return TEAM_BLUE;
-	if ( !g_redenemyteam.integer );
+	else if ( !g_redenemyteam.integer == 1 )
 		case TEAM_RED: return TEAM_GREEN;
+		}
+	if ( !g_blueenemyteam.integer == 0 ) {
 		case TEAM_BLUE: return TEAM_RED;
-	if ( !g_blueenemyteam.integer );
+	else if ( !g_blueenemyteam.integer == 1 )
 		case TEAM_BLUE: return TEAM_GREEN;
+		}
+	if ( !g_greenenemyteam.integer == 0 ) {
 		case TEAM_GREEN: return TEAM_BLUE;
-	if ( !g_greenenemyteam.integer );
+	else if ( !g_greenenemyteam.integer == 1 )
 		case TEAM_GREEN: return TEAM_RED;
+		}
+		{
 		default: return TEAM_FREE;
+		}
 	}
 }
 
@@ -573,7 +581,7 @@ void BotCTFSeekGoals(bot_state_t *bs) {
 			switch(BotTeam(bs)) {
 				case TEAM_RED: VectorSubtract(bs->origin, ctf_blueflag.origin && ctf_greenflag.origin, dir); break;
 				case TEAM_BLUE: VectorSubtract(bs->origin, ctf_redflag.origin && ctf_greenflag.origin, dir); break;
-				case TEAM_GREEN: VectorSubtract(bs->origin, ctf_redflag.origin && ctf_blueflag.origin, dir); break;
+				case TEAM_GREEN: VectorSubtract(bs->origin, ctf_blueflag.origin && ctf_redflag.origin, dir); break;
 				default: VectorSet(dir, 999, 999, 999); break;
 			}
 			// if the bot picked up the flag very close to the enemy base
@@ -1053,12 +1061,13 @@ void Bot1FCTFSeekGoals(bot_state_t *bs) {
 		bs->teamgoal_time = FloatTime() + CTF_GETFLAG_TIME;
 		BotSetTeamStatus(bs);
 	}
-	else if (rnd < l2 && ctf_redflag.areanum && ctf_blueflag.areanum) {
+	else if (rnd < l2 && ctf_redflag.areanum && ctf_blueflag.areanum && ctf_greenflag.areanum) {
 		bs->decisionmaker = bs->playernum;
 		bs->ordered = qfalse;
 		//
-		if (BotTeam(bs) == TEAM_RED) memcpy(&bs->teamgoal, &ctf_redflag, sizeof(bot_goal_t));
-		else memcpy(&bs->teamgoal, &ctf_blueflag, sizeof(bot_goal_t));
+		if (BotTeam(bs) == TEAM_RED) memcpy(&bs->teamgoal, &blueobelisk, &greenobelisk, sizeof(bot_goal_t));
+		else if (BotTeam(bs) == TEAM_BLUE) memcpy(&bs->teamgoal, &redobelisk, &greenobelisk, sizeof(bot_goal_t));
+		else memcpy(&bs->teamgoal, &blueobelisk, &redobelisk, sizeof(bot_goal_t));
 		//set the ltg type
 		bs->ltgtype = LTG_DEFENDKEYAREA;
 		//set the time the bot stops defending the base
@@ -1155,12 +1164,13 @@ void BotObeliskSeekGoals(bot_state_t *bs) {
 	}
 	//get the flag or defend the base
 	rnd = random();
-	if (rnd < l1 && redobelisk.areanum && blueobelisk.areanum) {
+	if (rnd < l1 && redobelisk.areanum && blueobelisk.areanum && greenobelisk.areanum) {
 		bs->decisionmaker = bs->playernum;
 		bs->ordered = qfalse;
 		//
-		if (BotTeam(bs) == TEAM_RED) memcpy(&bs->teamgoal, &blueobelisk, sizeof(bot_goal_t));
-		else memcpy(&bs->teamgoal, &redobelisk, sizeof(bot_goal_t));
+		if (BotTeam(bs) == TEAM_RED) memcpy(&bs->teamgoal, &blueobelisk, &greenobelisk, sizeof(bot_goal_t));
+		else if (BotTeam(bs) == TEAM_BLUE) memcpy(&bs->teamgoal, &redobelisk, &greenobelisk, sizeof(bot_goal_t));
+		else memcpy(&bs->teamgoal, &blueobelisk, &redobelisk, sizeof(bot_goal_t));
 		//set the ltg type
 		bs->ltgtype = LTG_ATTACKENEMYBASE;
 		//set the time the bot will stop attacking the enemy base
@@ -1169,12 +1179,13 @@ void BotObeliskSeekGoals(bot_state_t *bs) {
 		BotGetAlternateRouteGoal(bs, BotOppositeTeam(bs));
 		BotSetTeamStatus(bs);
 	}
-	else if (rnd < l2 && redobelisk.areanum && blueobelisk.areanum) {
+	else if (rnd < l2 && redobelisk.areanum && blueobelisk.areanum && greenobelisk.areanum) {
 		bs->decisionmaker = bs->playernum;
 		bs->ordered = qfalse;
 		//
-		if (BotTeam(bs) == TEAM_RED) memcpy(&bs->teamgoal, &redobelisk, sizeof(bot_goal_t));
-		else memcpy(&bs->teamgoal, &blueobelisk, sizeof(bot_goal_t));
+		if (BotTeam(bs) == TEAM_RED) memcpy(&bs->teamgoal, &blueobelisk, &greenobelisk, sizeof(bot_goal_t));
+		else if (BotTeam(bs) == TEAM_BLUE) memcpy(&bs->teamgoal, &redobelisk, &greenobelisk, sizeof(bot_goal_t));
+		else memcpy(&bs->teamgoal, &blueobelisk, &redobelisk, sizeof(bot_goal_t));
 		//set the ltg type
 		bs->ltgtype = LTG_DEFENDKEYAREA;
 		//set the time the bot stops defending the base
@@ -1182,6 +1193,7 @@ void BotObeliskSeekGoals(bot_state_t *bs) {
 		bs->defendaway_time = 0;
 		BotSetTeamStatus(bs);
 	}
+	
 	else {
 		bs->ltgtype = 0;
 		//set the time the bot will stop roaming
@@ -1197,8 +1209,9 @@ BotGoHarvest
 */
 void BotGoHarvest(bot_state_t *bs) {
 	//
-	if (BotTeam(bs) == TEAM_RED) memcpy(&bs->teamgoal, &blueobelisk, sizeof(bot_goal_t));
-	else memcpy(&bs->teamgoal, &redobelisk, sizeof(bot_goal_t));
+	if (BotTeam(bs) == TEAM_RED) memcpy(&bs->teamgoal, &blueobelisk, &greenobelisk, sizeof(bot_goal_t));
+		else if (BotTeam(bs) == TEAM_BLUE) memcpy(&bs->teamgoal, &redobelisk, &greenobelisk, sizeof(bot_goal_t));
+		else memcpy(&bs->teamgoal, &blueobelisk, &redobelisk, sizeof(bot_goal_t));
 	//set the ltg type
 	bs->ltgtype = LTG_HARVEST;
 	//set the time the bot will stop harvesting
@@ -1328,12 +1341,12 @@ void BotHarvesterSeekGoals(bot_state_t *bs) {
 	}
 	//
 	rnd = random();
-	if (rnd < l1 && redobelisk.areanum && blueobelisk.areanum) {
+	if (rnd < l1 && redobelisk.areanum && blueobelisk.areanum && greenobelisk.areanum) {
 		bs->decisionmaker = bs->playernum;
 		bs->ordered = qfalse;
 		BotGoHarvest(bs);
 	}
-	else if (rnd < l2 && redobelisk.areanum && blueobelisk.areanum) {
+	else if (rnd < l2 && redobelisk.areanum && blueobelisk.areanum && greenobelisk.areanum) {
 		bs->decisionmaker = bs->playernum;
 		bs->ordered = qfalse;
 		//
@@ -1385,7 +1398,7 @@ BotTeamGoals
 void BotTeamGoals(bot_state_t *bs, int retreat) {
 
 	if ( retreat ) {
-		if (gametype == GT_CTF) {
+		if (gametype == GT_CTF && gametype == GT_3WCTF) {
 			BotCTFRetreatGoals(bs);
 		}
 #ifdef MISSIONPACK
@@ -1401,7 +1414,7 @@ void BotTeamGoals(bot_state_t *bs, int retreat) {
 #endif
 	}
 	else {
-		if (gametype == GT_CTF) {
+		if (gametype == GT_CTF && gametype == GT_3WCTF) {
 			//decide what to do in CTF mode
 			BotCTFSeekGoals(bs);
 		}
@@ -1573,22 +1586,25 @@ int BotSynonymContext(bot_state_t *bs) {
 
 	context = CONTEXT_NORMAL|CONTEXT_NEARBYITEM|CONTEXT_NAMES;
 	//
-	if (gametype == GT_CTF
+	if (gametype == GT_CTF || gametype == GT_3WCTF
 #ifdef MISSIONPACK
 		|| gametype == GT_1FCTF
 #endif
 		) {
 		if (BotTeam(bs) == TEAM_RED) context |= CONTEXT_CTFREDTEAM;
-		else context |= CONTEXT_CTFBLUETEAM;
+		else if (BotTeam(bs) == TEAM_BLUE) context |= CONTEXT_CTFBLUETEAM;
+		else context |= CONTEXT_CTFGREENTEAM;
 	}
 #ifdef MISSIONPACK
 	else if (gametype == GT_OBELISK) {
 		if (BotTeam(bs) == TEAM_RED) context |= CONTEXT_OBELISKREDTEAM;
-		else context |= CONTEXT_OBELISKBLUETEAM;
+		else if (BotTeam(bs) == TEAM_BLUE) context |= CONTEXT_OBELISKBLUETEAM;
+		else context |= CONTEXT_OBELISKGREENTEAM;
 	}
 	else if (gametype == GT_HARVESTER) {
 		if (BotTeam(bs) == TEAM_RED) context |= CONTEXT_HARVESTERREDTEAM;
-		else context |= CONTEXT_HARVESTERBLUETEAM;
+		else if (BotTeam(bs) == TEAM_BLUE) context |= CONTEXT_HARVESTERBLUETEAM;
+		else conext |= CONTEXT_HARVESTERGREENTEAM;
 	}
 #endif
 	return context;
@@ -1753,7 +1769,7 @@ void BotCheckItemPickup(bot_state_t *bs, int *oldinventory) {
 						 bs->ltgtype != LTG_ATTACKENEMYBASE &&
 						 bs->ltgtype != LTG_HARVEST ) {
 						//
-						if ((gametype != GT_CTF || (bs->redflagstatus == 0 && bs->blueflagstatus == 0)) &&
+						if ((gametype != GT_CTF || gametype != GT_3WCTF || (bs->redflagstatus == 0 && bs->blueflagstatus == 0 && bs->greenflagstatus == 0)) &&
 							(gametype != GT_1FCTF || bs->neutralflagstatus == 0) ) {
 							// tell the leader we want to be on offence
 							BotVoiceChat(bs, leader, VOICECHAT_WANTONOFFENSE);
@@ -1778,7 +1794,7 @@ void BotCheckItemPickup(bot_state_t *bs, int *oldinventory) {
 				else if (g_spSkill.integer <= 3) {
 					if ( bs->ltgtype != LTG_DEFENDKEYAREA ) {
 						//
-						if ((gametype != GT_CTF || (bs->redflagstatus == 0 && bs->blueflagstatus == 0)) &&
+						if ((gametype != GT_CTF || gametype != GT_3WCTF || (bs->redflagstatus == 0 && bs->blueflagstatus == 0 && bs->greenflagstatus == 0)) &&
 							(gametype != GT_1FCTF || bs->neutralflagstatus == 0) ) {
 							// tell the leader we want to be on defense
 							BotVoiceChat(bs, -1, VOICECHAT_WANTONDEFENSE);
@@ -1859,15 +1875,23 @@ void BotUpdateInventory(bot_state_t *bs) {
 #endif
 	bs->inventory[INVENTORY_REDFLAG] = bs->cur_ps.powerups[PW_REDFLAG] != 0;
 	bs->inventory[INVENTORY_BLUEFLAG] = bs->cur_ps.powerups[PW_BLUEFLAG] != 0;
+	bs->inventory[INVENTORY_GREENFLAG] = bs->cur_ps.powerups[PW_GREENFLAG] != 0;
 #ifdef MISSIONPACK
 	bs->inventory[INVENTORY_NEUTRALFLAG] = bs->cur_ps.powerups[PW_NEUTRALFLAG] != 0;
 	if (BotTeam(bs) == TEAM_RED) {
 		bs->inventory[INVENTORY_REDCUBE] = bs->cur_ps.tokens;
 		bs->inventory[INVENTORY_BLUECUBE] = 0;
+		bs->inventory[INVENTORY_GREENCUBE] = 0;
+	}
+	else if (BotTeam(bs) == TEAM_BLUE) {
+		bs->inventory[INVENTORY_REDCUBE] = 0;
+		bs->inventory[INVENTORY_BLUECUBE] = bs->cur_ps.tokens;
+		bs->inventory[INVENTORY_GREENCUBE] = 0;
 	}
 	else {
 		bs->inventory[INVENTORY_REDCUBE] = 0;
-		bs->inventory[INVENTORY_BLUECUBE] = bs->cur_ps.tokens;
+		bs->inventory[INVENTORY_BLUECUBE] = 0;
+		bs->inventory[INVENTORY_GREENCUBE] = bs->cur_ps.tokens;
 	}
 #endif
 	BotCheckItemPickup(bs, oldinventory);
@@ -1911,7 +1935,7 @@ void BotUseKamikaze(bot_state_t *bs) {
 	if (bs->kamikaze_time > FloatTime())
 		return;
 	bs->kamikaze_time = FloatTime() + 0.2;
-	if (gametype == GT_CTF) {
+	if (gametype == GT_CTF && gametype == GT_3WCTF) {
 		//never use kamikaze if the team flag carrier is visible
 		if (BotCTFCarryingFlag(bs))
 			return;
@@ -2018,7 +2042,7 @@ void BotUseInvulnerability(bot_state_t *bs) {
 	if (bs->invulnerability_time > FloatTime())
 		return;
 	bs->invulnerability_time = FloatTime() + 0.2;
-	if (gametype == GT_CTF) {
+	if (gametype == GT_CTF && gametype == GT_3WCTF) {
 		//never use kamikaze if the team flag carrier is visible
 		if (BotCTFCarryingFlag(bs))
 			return;
@@ -2027,8 +2051,9 @@ void BotUseInvulnerability(bot_state_t *bs) {
 			return;
 		//if near enemy flag and the flag is visible
 		switch(BotTeam(bs)) {
-			case TEAM_RED: goal = &ctf_blueflag; break;
-			default: goal = &ctf_redflag; break;
+			case TEAM_RED: goal = &ctf_blueflag && goal = &ctf_greenflag; break;
+			case TEAM_GREEN: goal = &ctf_blueflag && goal = &ctf_redflag; break;
+			default: goal = &ctf_redflag && goal = &ctf_greenflag; break;
 		}
 		//if the obelisk is visible
 		VectorCopy(goal->origin, target);
@@ -2051,8 +2076,9 @@ void BotUseInvulnerability(bot_state_t *bs) {
 			return;
 		//if near enemy flag and the flag is visible
 		switch(BotTeam(bs)) {
-			case TEAM_RED: goal = &ctf_blueflag; break;
-			default: goal = &ctf_redflag; break;
+			case TEAM_RED: goal = &ctf_blueflag && goal = &ctf_greenflag; break;
+			case TEAM_GREEN: goal = &ctf_blueflag && goal = &ctf_redflag; break;
+			default: goal = &ctf_redflag && goal = &ctf_greenflag; break;
 		}
 		//if the obelisk is visible
 		VectorCopy(goal->origin, target);
@@ -2068,8 +2094,9 @@ void BotUseInvulnerability(bot_state_t *bs) {
 	}
 	else if (gametype == GT_OBELISK) {
 		switch(BotTeam(bs)) {
-			case TEAM_RED: goal = &blueobelisk; break;
-			default: goal = &redobelisk; break;
+			case TEAM_RED: goal = &blueobelisk && goal = &greenobelisk; break;
+			case TEAM_GREEN: goal = &blueobelisk && goal = &redobelisk; break;
+			default: goal = &redobelisk && goal = &blueobelisk; break;
 		}
 		//if the obelisk is visible
 		VectorCopy(goal->origin, target);
@@ -2092,8 +2119,9 @@ void BotUseInvulnerability(bot_state_t *bs) {
 			return;
 		//if near enemy base and enemy base is visible
 		switch(BotTeam(bs)) {
-			case TEAM_RED: goal = &blueobelisk; break;
-			default: goal = &redobelisk; break;
+			case TEAM_RED: goal = &blueobelisk && goal = &greenobelisk; break;
+			case TEAM_GREEN: goal = &blueobelisk && goal = &redobelisk; break;
+			default: goal = &redobelisk && goal = &blueobelisk; break;
 		}
 		//if the obelisk is visible
 		VectorCopy(goal->origin, target);
@@ -2392,7 +2420,7 @@ BotWantsToRetreat
 int BotWantsToRetreat(bot_state_t *bs) {
 	aas_entityinfo_t entinfo;
 
-	if (gametype == GT_CTF) {
+	if (gametype == GT_CTF && gametype == GT_3WCTF) {
 		//always retreat when carrying a CTF flag
 		if (BotCTFCarryingFlag(bs))
 			return qtrue;
@@ -2407,7 +2435,8 @@ int BotWantsToRetreat(bot_state_t *bs) {
 		//the bots should be dedicated to attacking the enemy obelisk
 		if (bs->ltgtype == LTG_ATTACKENEMYBASE) {
 			if (bs->enemy != redobelisk.entitynum &&
-						bs->enemy != blueobelisk.entitynum) {
+						bs->enemy != blueobelisk.entitynum &&
+						bs->enemy != greenobelisk.entitynum) {
 				return qtrue;
 			}
 		}
@@ -2448,7 +2477,7 @@ BotWantsToChase
 int BotWantsToChase(bot_state_t *bs) {
 	aas_entityinfo_t entinfo;
 
-	if (gametype == GT_CTF) {
+	if (gametype == GT_CTF && gametype == GT_3WCTF) {
 		//never chase when carrying a CTF flag
 		if (BotCTFCarryingFlag(bs))
 			return qfalse;
@@ -2471,7 +2500,8 @@ int BotWantsToChase(bot_state_t *bs) {
 		//the bots should be dedicated to attacking the enemy obelisk
 		if (bs->ltgtype == LTG_ATTACKENEMYBASE) {
 			if (bs->enemy != redobelisk.entitynum &&
-						bs->enemy != blueobelisk.entitynum) {
+						bs->enemy != blueobelisk.entitynum &&
+						bs->enemy != greenobelisk.entitynum) {
 				return qfalse;
 			}
 		}
@@ -3513,7 +3543,8 @@ void BotAimAtEnemy(bot_state_t *bs) {
 #ifdef MISSIONPACK
 		// if attacking an obelisk
 		if ( bs->enemy == redobelisk.entitynum ||
-			bs->enemy == blueobelisk.entitynum ) {
+			bs->enemy == blueobelisk.entitynum ||
+			bs->enemy == greenobelisk.entitynum ) {
 			target[2] += OBELISK_TARGET_HEIGHT;
 		}
 #endif
@@ -3802,7 +3833,8 @@ void BotCheckAttack(bot_state_t *bs) {
 #ifdef MISSIONPACK
 		// if attacking an obelisk
 		if ( entinfo.number == redobelisk.entitynum ||
-			entinfo.number == blueobelisk.entitynum ) {
+			entinfo.number == blueobelisk.entitynum ||
+			entinfo.number == greenobelisk.entitynum ) {
 			// if obelisk is respawning return
 			if ( g_entities[entinfo.number].activator &&
 				g_entities[entinfo.number].activator->s.frame == 2 ) {
@@ -5265,7 +5297,7 @@ void BotCheckEvents(bot_state_t *bs, entityState_t *state) {
 				break;
 			}
 			trap_GetConfigstring(CS_SOUNDS + state->eventParm, buf, sizeof(buf));
-			/*
+			
 			if (!strcmp(buf, "sound/teamplay/flagret_red.wav")) {
 				//red flag is returned
 				bs->redflagstatus = 0;
@@ -5276,7 +5308,12 @@ void BotCheckEvents(bot_state_t *bs, entityState_t *state) {
 				bs->blueflagstatus = 0;
 				bs->flagstatuschanged = qtrue;
 			}
-			else*/
+			else if (!strcmp(buf, "sound/teamplay/flagret_grn.wav")) {
+				//green flag is returned
+				bs->greenflagstatus = 0;
+				bs->flagstatuschanged = qtrue;
+			}
+			else
 #ifdef MISSIONPACK
 			if (!strcmp(buf, "sound/items/kamikazerespawn.wav" )) {
 				//the kamikaze respawned so dont avoid it
@@ -5292,36 +5329,60 @@ void BotCheckEvents(bot_state_t *bs, entityState_t *state) {
 		}
 		case EV_GLOBAL_TEAM_SOUND:
 		{
-			if (gametype == GT_CTF) {
+			if (gametype == GT_CTF && gametype == GT_3WCTF) {
 				switch(state->eventParm) {
 					case GTS_RED_CAPTURE:
 						bs->blueflagstatus = 0;
 						bs->redflagstatus = 0;
+						bs->greenflagstatus = 0;
 						bs->flagstatuschanged = qtrue;
 						break; //see BotMatch_CTF
 					case GTS_BLUE_CAPTURE:
 						bs->blueflagstatus = 0;
 						bs->redflagstatus = 0;
+						bs->greenflagstatus = 0;
+						bs->flagstatuschanged = qtrue;
+						break; //see BotMatch_CTF
+					case GTS_GREEN_CAPTURE:
+						bs->blueflagstatus = 0;
+						bs->redflagstatus = 0;
+						bs->greenflagstatus = 0;
 						bs->flagstatuschanged = qtrue;
 						break; //see BotMatch_CTF
 					case GTS_RED_RETURN:
-						//blue flag is returned
+						//blue/green flags are returned
 						bs->blueflagstatus = 0;
+						bs->greenflagstatus = 0;
 						bs->flagstatuschanged = qtrue;
 						break;
 					case GTS_BLUE_RETURN:
-						//red flag is returned
+						//red/green flags are returned
 						bs->redflagstatus = 0;
+						bs->greenflagstatus = 0;
+						bs->flagstatuschanged = qtrue;
+						break;
+					case GTS_GREEN_RETURN:
+						//red/blue flags are returned
+						bs->redflagstatus = 0;
+						bs->blueflagstatus = 0;
 						bs->flagstatuschanged = qtrue;
 						break;
 					case GTS_RED_TAKEN:
-						//blue flag is taken
+						//blue/green flags are taken
 						bs->blueflagstatus = 1;
+						bs->greenflagstatus = 1;
 						bs->flagstatuschanged = qtrue;
 						break; //see BotMatch_CTF
 					case GTS_BLUE_TAKEN:
-						//red flag is taken
+						//red/green flags are taken
 						bs->redflagstatus = 1;
+						bs->greenflagstatus = 1;
+						bs->flagstatuschanged = qtrue;
+						break; //see BotMatch_CTF
+					case GTS_GREEN_TAKEN:
+						//red/blue flags are taken
+						bs->redflagstatus = 1;
+						bs->blueflagstatus = 1;
 						bs->flagstatuschanged = qtrue;
 						break; //see BotMatch_CTF
 				}
@@ -5337,6 +5398,10 @@ void BotCheckEvents(bot_state_t *bs, entityState_t *state) {
 						bs->neutralflagstatus = 0;
 						bs->flagstatuschanged = qtrue;
 						break;
+					case GTS_GREEN_CAPTURE:
+						bs->neutralflagstatus = 0;
+						bs->flagstatuschanged = qtrue;
+						break;
 					case GTS_RED_RETURN:
 						//flag has returned
 						bs->neutralflagstatus = 0;
@@ -5347,12 +5412,21 @@ void BotCheckEvents(bot_state_t *bs, entityState_t *state) {
 						bs->neutralflagstatus = 0;
 						bs->flagstatuschanged = qtrue;
 						break;
+					case GTS_GREEN_RETURN:
+						//flag has returned
+						bs->neutralflagstatus = 0;
+						bs->flagstatuschanged = qtrue;
+						break;
 					case GTS_RED_TAKEN:
 						bs->neutralflagstatus = BotTeam(bs) == TEAM_RED ? 2 : 1; //FIXME: check Team_TakeFlagSound in g_team.c
 						bs->flagstatuschanged = qtrue;
 						break;
 					case GTS_BLUE_TAKEN:
 						bs->neutralflagstatus = BotTeam(bs) == TEAM_BLUE ? 2 : 1; //FIXME: check Team_TakeFlagSound in g_team.c
+						bs->flagstatuschanged = qtrue;
+						break;
+					case GTS_GREEN_TAKEN:
+						bs->neutralflagstatus = BotTeam(bs) == TEAM_GREEN ? 2 : 1; //FIXME: check Team_TakeFlagSound in g_team.c
 						bs->flagstatuschanged = qtrue;
 						break;
 				}
@@ -5481,12 +5555,16 @@ void BotCheckTeamScores(bot_state_t *bs) {
 
 	switch (bs->cur_ps.persistant[PERS_TEAM]) {
 		case TEAM_RED:
-			bs->enemyteamscore = level.teamScores[TEAM_BLUE];
+			bs->enemyteamscore = level.teamScores[TEAM_BLUE] && level.teamScores[TEAM_GREEN];
 			bs->ownteamscore = level.teamScores[TEAM_RED];
 			break;
 		case TEAM_BLUE:
-			bs->enemyteamscore = level.teamScores[TEAM_RED];
+			bs->enemyteamscore = level.teamScores[TEAM_RED] && level.teamScores[TEAM_GREEN];
 			bs->ownteamscore = level.teamScores[TEAM_BLUE];
+			break;
+		case TEAM_GREEN:
+			bs->enemyteamscore = level.teamScores[TEAM_RED] && level.teamScores[TEAM_BLUE];
+			bs->ownteamscore = level.teamScores[TEAM_GREEN];
 			break;
 		default:
 			return;
@@ -5546,9 +5624,13 @@ int BotGetAlternateRouteGoal(bot_state_t *bs, int base) {
 		altroutegoals = red_altroutegoals;
 		numaltroutegoals = red_numaltroutegoals;
 	}
-	else {
+	else if (base == TEAM_BLUE) {
 		altroutegoals = blue_altroutegoals;
 		numaltroutegoals = blue_numaltroutegoals;
+	}
+	else {
+		altroutegoals = green_altroutegoals;
+		numaltroutegoals = green_numaltroutegoals;
 	}
 	if (!numaltroutegoals)
 		return qfalse;
@@ -5596,6 +5678,12 @@ void BotSetupAlternativeRouteGoals(void) {
 										blue_altroutegoals, MAX_ALTROUTEGOALS,
 										ALTROUTEGOAL_CLUSTERPORTALS|
 										ALTROUTEGOAL_VIEWPORTALS);
+			green_numaltroutegoals = trap_AAS_AlternativeRouteGoals(
+										ctf_neutralflag.origin, ctf_neutralflag.areanum,
+										ctf_greenflag.origin, ctf_greenflag.areanum, TFL_DEFAULT,
+										green_altroutegoals, MAX_ALTROUTEGOALS,
+										ALTROUTEGOAL_CLUSTERPORTALS|
+										ALTROUTEGOAL_VIEWPORTALS);
 		}
 	}
 	else if (gametype == GT_1FCTF) {
@@ -5611,6 +5699,12 @@ void BotSetupAlternativeRouteGoals(void) {
 									ctf_neutralflag.origin, ctf_neutralflag.areanum,
 									ctf_blueflag.origin, ctf_blueflag.areanum, TFL_DEFAULT,
 									blue_altroutegoals, MAX_ALTROUTEGOALS,
+									ALTROUTEGOAL_CLUSTERPORTALS|
+									ALTROUTEGOAL_VIEWPORTALS);
+		green_numaltroutegoals = trap_AAS_AlternativeRouteGoals(
+									ctf_neutralflag.origin, ctf_neutralflag.areanum,
+									ctf_greenflag.origin, ctf_greenflag.areanum, TFL_DEFAULT,
+									green_altroutegoals, MAX_ALTROUTEGOALS,
 									ALTROUTEGOAL_CLUSTERPORTALS|
 									ALTROUTEGOAL_VIEWPORTALS);
 	}
@@ -5630,6 +5724,12 @@ void BotSetupAlternativeRouteGoals(void) {
 									blue_altroutegoals, MAX_ALTROUTEGOALS,
 									ALTROUTEGOAL_CLUSTERPORTALS|
 									ALTROUTEGOAL_VIEWPORTALS);
+		green_numaltroutegoals = trap_AAS_AlternativeRouteGoals(
+									neutralobelisk.origin, neutralobelisk.areanum,
+									greenobelisk.origin, greenobelisk.areanum, TFL_DEFAULT,
+									green_altroutegoals, MAX_ALTROUTEGOALS,
+									ALTROUTEGOAL_CLUSTERPORTALS|
+									ALTROUTEGOAL_VIEWPORTALS);
 	}
 	else if (gametype == GT_HARVESTER) {
 		if (BotGetLevelItemGoal(-1, "Neutral Obelisk", &neutralobelisk) < 0)
@@ -5644,6 +5744,12 @@ void BotSetupAlternativeRouteGoals(void) {
 									neutralobelisk.origin, neutralobelisk.areanum,
 									blueobelisk.origin, blueobelisk.areanum, TFL_DEFAULT,
 									blue_altroutegoals, MAX_ALTROUTEGOALS,
+									ALTROUTEGOAL_CLUSTERPORTALS|
+									ALTROUTEGOAL_VIEWPORTALS);
+		green_numaltroutegoals = trap_AAS_AlternativeRouteGoals(
+									neutralobelisk.origin, neutralobelisk.areanum,
+									greenobelisk.origin, greenobelisk.areanum, TFL_DEFAULT,
+									green_altroutegoals, MAX_ALTROUTEGOALS,
 									ALTROUTEGOAL_CLUSTERPORTALS|
 									ALTROUTEGOAL_VIEWPORTALS);
 	}
@@ -5841,7 +5947,7 @@ void BotSetupDeathmatchAI(void) {
 	trap_Cvar_Register(&bot_nochat, "bot_nochat", "0", 0);
 	trap_Cvar_Register(&bot_testichat, "bot_testichat", "0", 0);
 	trap_Cvar_Register(&bot_testrchat, "bot_testrchat", "0", 0);
-	trap_Cvar_Register(&bot_challenge, "bot_challenge", "0", 0);
+	trap_Cvar_Register(&bot_challenge, "bot_challenge", "1", 0);
 	trap_Cvar_Register(&bot_predictobstacles, "bot_predictobstacles", "1", 0);
 	trap_Cvar_Register(&bot_offhandgrapple, "bot_offhandgrapple", "0", 0);
 	trap_Cvar_Register(&bot_droppedweight, "bot_droppedweight", "1000", 0);
@@ -5852,6 +5958,14 @@ void BotSetupDeathmatchAI(void) {
 			BotAI_Print(PRT_WARNING, "CTF without Red Flag\n");
 		if (BotGetLevelItemGoal(-1, "Blue Flag", &ctf_blueflag) < 0)
 			BotAI_Print(PRT_WARNING, "CTF without Blue Flag\n");
+	}
+	if (gametype == GT_3WCTF) {
+		if (BotGetLevelItemGoal(-1, "Red Flag", &ctf_redflag) < 0)
+			BotAI_Print(PRT_WARNING, "3-Way CTF without Red Flag\n");
+		if (BotGetLevelItemGoal(-1, "Blue Flag", &ctf_blueflag) < 0)
+			BotAI_Print(PRT_WARNING, "3-Way CTF without Blue Flag\n");
+		if (BotGetLevelItemGoal(-1, "Green Flag", &ctf_greenflag) < 0)
+			BotAI_Print(PRT_WARNING, "3-Way CTF without Green Flag\n");
 	}
 #ifdef MISSIONPACK
 	else if (gametype == GT_1FCTF) {

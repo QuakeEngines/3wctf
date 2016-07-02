@@ -86,10 +86,10 @@ void Team_InitGame( void ) {
 }
 
 int OtherTeam(int team) {
-	if (team==TEAM_RED)		//is the green or blue team the enemy?
-		return TEAM_BLUE;	//if so, blue team is the enemy
+	if (team==TEAM_RED)
+		return TEAM_BLUE;
 	if (!g_redenemyteam.integer)
-        return TEAM_GREEN;		//if otherwise, green team is the enemy
+        return TEAM_GREEN;
 	else if (team==TEAM_BLUE)
 		return TEAM_RED;
 	if (!g_blueenemyteam.integer)
@@ -172,20 +172,29 @@ void AddTeamScore(vec3_t origin, int team, int score) {
 	} else if ( level.teamScores[ team ] >= level.teamScores[ otherTeam ] &&
 				level.teamScores[ team ] + score < level.teamScores[ otherTeam ] ) {
 		// other team took the lead sound (negative score)
-		eventParm = ( otherTeam == TEAM_RED ) ? GTS_REDTEAM_TOOK_LEAD; 
-		eventParm = ( otherTeam == TEAM_BLUE ) ? GTS_BLUETEAM_TOOK_LEAD; 
-		eventParm = ( otherTeam == TEAM_GREEN ) ? GTS_GREENTEAM_TOOK_LEAD;
+		if ( otherTeam == TEAM_RED )
+			eventParm = GTS_REDTEAM_TOOK_LEAD; 
+		else if ( otherTeam == TEAM_BLUE )
+			eventParm = GTS_BLUETEAM_TOOK_LEAD; 
+		else if ( otherTeam == TEAM_GREEN )
+			eventParm = GTS_GREENTEAM_TOOK_LEAD;
 	} else if ( level.teamScores[ team ] <= level.teamScores[ otherTeam ] &&
 				level.teamScores[ team ] + score > level.teamScores[ otherTeam ] ) {
 		// this team took the lead sound
-		eventParm = ( team == TEAM_RED ) ? GTS_REDTEAM_TOOK_LEAD;		
-		eventParm = ( team == TEAM_BLUE ) ? GTS_BLUETEAM_TOOK_LEAD; 
-		eventParm = ( team == TEAM_GREEN ) ? GTS_GREENTEAM_TOOK_LEAD;
+		if ( team == TEAM_RED )
+			eventParm = GTS_REDTEAM_TOOK_LEAD; 
+		else if ( team == TEAM_BLUE )
+			eventParm = GTS_BLUETEAM_TOOK_LEAD; 
+		else if ( team == TEAM_GREEN )
+			eventParm = GTS_GREENTEAM_TOOK_LEAD;
 	} else if ( score > 0 && g_gametype.integer != GT_TEAM ) {
 		// team scored sound
-		eventParm = ( team == TEAM_RED ) ? GTS_REDTEAM_SCORED;
-		eventParm = ( team == TEAM_BLUE ) ? GTS_BLUETEAM_SCORED; 
-		eventParm = ( team == TEAM_GREEN ) ? GTS_GREENTEAM_SCORED;
+		if ( team == TEAM_RED )
+			eventParm = GTS_REDTEAM_SCORED;
+		else if ( team == TEAM_BLUE )
+			eventParm = GTS_BLUETEAM_SCORED; 
+		else if ( team == TEAM_GREEN )
+			eventParm = GTS_GREENTEAM_SCORED;
 	}
 
 	if ( eventParm != -1 ) {
@@ -258,7 +267,7 @@ void Team_SetFlagStatus( int team, flagStatus_t status ) {
 	if( modified ) {
 		char st[4];
 
-		if( g_gametype.integer == GT_CTF && g_gametype.integer == GT_3WCTF ) {
+		if( g_gametype.integer == GT_CTF || g_gametype.integer == GT_3WCTF ) {
 			st[0] = ctfFlagStatusRemap[teamgame.redStatus];
 			st[1] = ctfFlagStatusRemap[teamgame.blueStatus];
 			st[2] = ctfFlagStatusRemap[teamgame.greenStatus];
@@ -564,15 +573,15 @@ void Team_CheckHurtCarrier(gentity_t *targ, gentity_t *attacker)
 		}
 	else if (targ->player->sess.sessionTeam == TEAM_BLUE)
 		if (!g_blueenemyteam.integer)
-		flag_pw = PW_REDFLAG;
-	else
-		flag_pw = PW_GREENFLAG;
+			flag_pw = PW_REDFLAG;
+		else
+			flag_pw = PW_GREENFLAG;
 	
 	else if (targ->player->sess.sessionTeam == TEAM_GREEN)
 		if (!g_blueenemyteam.integer)
-		flag_pw = PW_BLUEFLAG;
-	else
-		flag_pw = PW_REDFLAG;
+			flag_pw = PW_BLUEFLAG;
+		else
+			flag_pw = PW_REDFLAG;
 	
 	// flags
 	if (targ->player->ps.powerups[flag_pw] &&

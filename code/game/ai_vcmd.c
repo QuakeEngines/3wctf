@@ -81,13 +81,13 @@ BotVoiceChat_GetFlag
 */
 void BotVoiceChat_GetFlag(bot_state_t *bs, int playernum, int mode) {
 	//
-	if (gametype == GT_CTF) {
-		if (!ctf_redflag.areanum || !ctf_blueflag.areanum)
+	if (gametype == GT_CTF && gametype == GT_3WCTF) {
+		if (!ctf_redflag.areanum || !ctf_blueflag.areanum || !ctf_greenflag.areanum)
 			return;
 	}
 #ifdef MISSIONPACK
 	else if (gametype == GT_1FCTF) {
-		if (!ctf_neutralflag.areanum || !ctf_redflag.areanum || !ctf_blueflag.areanum)
+		if (!ctf_neutralflag.areanum || !ctf_redflag.areanum || !ctf_blueflag.areanum || !ctf_greenflag.areanum)
 			return;
 	}
 #endif
@@ -105,7 +105,7 @@ void BotVoiceChat_GetFlag(bot_state_t *bs, int playernum, int mode) {
 	//set the team goal time
 	bs->teamgoal_time = FloatTime() + CTF_GETFLAG_TIME;
 	// get an alternate route in ctf
-	if (gametype == GT_CTF) {
+	if (gametype == GT_CTF && gametype == GT_3WCTF) {
 		//get an alternative route goal towards the enemy base
 		BotGetAlternateRouteGoal(bs, BotOppositeTeam(bs));
 	}
@@ -122,7 +122,7 @@ BotVoiceChat_Offense
 ==================
 */
 void BotVoiceChat_Offense(bot_state_t *bs, int playernum, int mode) {
-	if ( gametype == GT_CTF
+	if ( gametype == GT_CTF || gametype == GT_3WCTF
 #ifdef MISSIONPACK
 		|| gametype == GT_1FCTF
 #endif
@@ -182,12 +182,13 @@ void BotVoiceChat_Defend(bot_state_t *bs, int playernum, int mode) {
 		switch(BotTeam(bs)) {
 			case TEAM_RED: memcpy(&bs->teamgoal, &redobelisk, sizeof(bot_goal_t)); break;
 			case TEAM_BLUE: memcpy(&bs->teamgoal, &blueobelisk, sizeof(bot_goal_t)); break;
+			case TEAM_GREEN: memcpy(&bs->teamgoal, &greenobelisk, sizeof(bot_goal_t)); break;
 			default: return;
 		}
 	}
 	else
 #endif
-		if (gametype == GT_CTF
+		if (gametype == GT_CTF || gametype == GT_3WCTF
 #ifdef MISSIONPACK
 			|| gametype == GT_1FCTF
 #endif
@@ -196,6 +197,7 @@ void BotVoiceChat_Defend(bot_state_t *bs, int playernum, int mode) {
 		switch(BotTeam(bs)) {
 			case TEAM_RED: memcpy(&bs->teamgoal, &ctf_redflag, sizeof(bot_goal_t)); break;
 			case TEAM_BLUE: memcpy(&bs->teamgoal, &ctf_blueflag, sizeof(bot_goal_t)); break;
+			case TEAM_GREEN: memcpy(&bs->teamgoal, &ctf_greenflag, sizeof(bot_goal_t)); break;
 			default: return;
 		}
 	}
@@ -379,7 +381,7 @@ BotVoiceChat_ReturnFlag
 void BotVoiceChat_ReturnFlag(bot_state_t *bs, int playernum, int mode) {
 	//if not in CTF mode
 	if (
-		gametype != GT_CTF
+		gametype != GT_CTF && gametype != GT_3WCTF
 #ifdef MISSIONPACK
 		&& gametype != GT_1FCTF
 #endif

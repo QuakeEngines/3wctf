@@ -258,7 +258,7 @@ void BotTestAAS(vec3_t origin) {
 	if (bot_testsolid.integer) {
 		if (!trap_AAS_Initialized()) return;
 		areanum = BotPointAreaNum(origin);
-		if (areanum) BotAI_Print(PRT_MESSAGE, "\remtpy area");
+		if (areanum) BotAI_Print(PRT_MESSAGE, "\rempty area"); //could break running the demo/demotest with this grammatical correction
 		else BotAI_Print(PRT_MESSAGE, "\r^1SOLID area");
 	}
 	else if (bot_testclusters.integer) {
@@ -333,6 +333,15 @@ void Svcmd_BotTeamplayReport_f(void) {
 				BotReportStatus(botstates[i]);
 			}
 		}
+		BotAI_Print(PRT_MESSAGE, S_COLOR_GREEN"GREEN\n");
+		for (i = 0; i < level.maxplayers; i++) {
+			//
+			if ( !botstates[i] || !botstates[i]->inuse ) continue;
+			//
+			if (BotTeam(botstates[i]) == TEAM_GREEN) {
+				BotReportStatus(botstates[i]);
+			}
+		}
 	}
 	else {
 		for (i = 0; i < level.maxplayers; i++) {
@@ -361,7 +370,7 @@ void BotSetInfoConfigString(bot_state_t *bs) {
 	else leader = "";
 
 	strcpy(carrying, "");
-	if (gametype == GT_CTF) {
+	if (gametype == GT_CTF || gametype == GT_3WCTF) {
 		if (BotCTFCarryingFlag(bs)) {
 			strcpy(carrying, "F");
 		}
@@ -375,7 +384,8 @@ void BotSetInfoConfigString(bot_state_t *bs) {
 	else if (gametype == GT_HARVESTER) {
 		if (BotHarvesterCarryingCubes(bs)) {
 			if (BotTeam(bs) == TEAM_RED) Com_sprintf(carrying, sizeof(carrying), "%2d", bs->inventory[INVENTORY_REDCUBE]);
-			else Com_sprintf(carrying, sizeof(carrying), "%2d", bs->inventory[INVENTORY_BLUECUBE]);
+			else if (BotTeam(bs) == TEAM_BLUE) Com_sprintf(carrying, sizeof(carrying), "%2d", bs->inventory[INVENTORY_BLUECUBE]);
+			else if (BotTeam(bs) == TEAM_GREEN) Com_sprintf(carrying, sizeof(carrying), "%2d", bs->inventory[INVENTORY_GREENCUBE]);
 		}
 	}
 #endif
@@ -1002,7 +1012,7 @@ int BotAI(int playernum, float thinktime) {
 		if (!args) continue;
 		*args++ = '\0';
 
-		//remove color espace sequences from the arguments
+		//remove color escape sequences from the arguments
 		RemoveColorEscapeSequences( args );
 
 		if (!Q_stricmp(buf, "cp "))

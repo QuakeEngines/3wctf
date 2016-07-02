@@ -745,7 +745,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		return qtrue;
 	}
 
-	if (gametype == GT_CTF) {
+	if (gametype == GT_CTF && gametype == GT_3WCTF) {
 		//if going for enemy flag
 		if (bs->ltgtype == LTG_GETFLAG) {
 			//check for bot typing status message
@@ -757,16 +757,18 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			}
 			//
 			switch(BotTeam(bs)) {
-				case TEAM_RED: memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t)); break;
-				case TEAM_BLUE: memcpy(goal, &ctf_redflag, sizeof(bot_goal_t)); break;
+				case TEAM_RED: memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t)); memcpy(goal, &ctf_greenflag, sizeof(bot_goal_t)); break;
+				case TEAM_BLUE: memcpy(goal, &ctf_redflag, sizeof(bot_goal_t)); memcpy(goal, &ctf_greenflag, sizeof(bot_goal_t)); break;
+				case TEAM_GREEN: memcpy(goal, &ctf_redflag, sizeof(bot_goal_t)); memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t)); break;
 				default: bs->ltgtype = 0; return qfalse;
 			}
 			//if touching the flag
 			if (BotTouchingGoal(bs->origin, goal)) {
 				// make sure the bot knows the flag isn't there anymore
 				switch(BotTeam(bs)) {
-					case TEAM_RED: bs->blueflagstatus = 1; break;
-					case TEAM_BLUE: bs->redflagstatus = 1; break;
+					case TEAM_RED: bs->blueflagstatus = 1; bs->greenflagstatus = 1; break;
+					case TEAM_BLUE: bs->redflagstatus = 1; bs->greenflagstatus = 1; break;
+					case TEAM_GREEN: bs->redflagstatus = 1; bs->blueflagstatus = 1; break;
 				}
 				bs->ltgtype = 0;
 			}
@@ -782,6 +784,7 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			switch(BotTeam(bs)) {
 				case TEAM_RED: memcpy(goal, &ctf_redflag, sizeof(bot_goal_t)); break;
 				case TEAM_BLUE: memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t)); break;
+				case TEAM_GREEN: memcpy(goal, &ctf_greenflag, sizeof(bot_goal_t)); break;
 				default: bs->ltgtype = 0; return qfalse;
 			}
 			//if not carrying the flag anymore
@@ -815,8 +818,9 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 			}
 			//
 			switch(BotTeam(bs)) {
-				case TEAM_RED: memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t)); break;
-				case TEAM_BLUE: memcpy(goal, &ctf_redflag, sizeof(bot_goal_t)); break;
+				case TEAM_RED: memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t)); memcpy(goal, &ctf_greenflag, sizeof(bot_goal_t)); break;
+				case TEAM_BLUE: memcpy(goal, &ctf_redflag, sizeof(bot_goal_t)); memcpy(goal, &ctf_greenflag, sizeof(bot_goal_t)); break;
+				case TEAM_GREEN: memcpy(goal, &ctf_redflag, sizeof(bot_goal_t)); memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t)); break;
 				default: bs->ltgtype = 0; return qfalse;
 			}
 			//if touching the flag
@@ -853,8 +857,9 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		//if rushing to the base
 		if (bs->ltgtype == LTG_RUSHBASE) {
 			switch(BotTeam(bs)) {
-				case TEAM_RED: memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t)); break;
-				case TEAM_BLUE: memcpy(goal, &ctf_redflag, sizeof(bot_goal_t)); break;
+				case TEAM_RED: memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t)); memcpy(goal, &ctf_greenflag, sizeof(bot_goal_t)); break;
+				case TEAM_BLUE: memcpy(goal, &ctf_redflag, sizeof(bot_goal_t)); memcpy(goal, &ctf_greenflag, sizeof(bot_goal_t)); break;
+				case TEAM_GREEN: memcpy(goal, &ctf_redflag, sizeof(bot_goal_t)); memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t)); break;
 				default: bs->ltgtype = 0; return qfalse;
 			}
 			//if not carrying the flag anymore
@@ -883,8 +888,9 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				bs->teammessage_time = 0;
 			}
 			switch(BotTeam(bs)) {
-				case TEAM_RED: memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t)); break;
-				case TEAM_BLUE: memcpy(goal, &ctf_redflag, sizeof(bot_goal_t)); break;
+				case TEAM_RED: memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t)); memcpy(goal, &ctf_greenflag, sizeof(bot_goal_t)); break;
+				case TEAM_BLUE: memcpy(goal, &ctf_redflag, sizeof(bot_goal_t)); memcpy(goal, &ctf_greenflag, sizeof(bot_goal_t)); break;
+				case TEAM_GREEN: memcpy(goal, &ctf_redflag, sizeof(bot_goal_t)); memcpy(goal, &ctf_blueflag, sizeof(bot_goal_t)); break;
 				default: bs->ltgtype = 0; return qfalse;
 			}
 			//quit rushing after 2 minutes
@@ -926,8 +932,9 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				bs->teammessage_time = 0;
 			}
 			switch(BotTeam(bs)) {
-				case TEAM_RED: memcpy(goal, &blueobelisk, sizeof(bot_goal_t)); break;
-				case TEAM_BLUE: memcpy(goal, &redobelisk, sizeof(bot_goal_t)); break;
+				case TEAM_RED: memcpy(goal, &blueobelisk, sizeof(bot_goal_t)); memcpy(goal, &greenobelisk, sizeof(bot_goal_t)); break;
+				case TEAM_BLUE: memcpy(goal, &redobelisk, sizeof(bot_goal_t)); memcpy(goal, &greenobelisk, sizeof(bot_goal_t)); break;
+				case TEAM_GREEN: memcpy(goal, &redobelisk, sizeof(bot_goal_t)); memcpy(goal, &blueobelisk, sizeof(bot_goal_t)); break;
 				default: bs->ltgtype = 0; return qfalse;
 			}
 			//if the bot no longer wants to attack the obelisk
@@ -956,9 +963,10 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 		//if rushing to the base
 		if (bs->ltgtype == LTG_RUSHBASE) {
 			switch(BotTeam(bs)) {
-				case TEAM_RED: memcpy(goal, &blueobelisk, sizeof(bot_goal_t)); break;
-				case TEAM_BLUE: memcpy(goal, &redobelisk, sizeof(bot_goal_t)); break;
-				default: BotGoHarvest(bs); return qfalse;
+				case TEAM_RED: memcpy(goal, &blueobelisk, sizeof(bot_goal_t)); memcpy(goal, &greenobelisk, sizeof(bot_goal_t)); break;
+				case TEAM_BLUE: memcpy(goal, &redobelisk, sizeof(bot_goal_t)); memcpy(goal, &greenobelisk, sizeof(bot_goal_t)); break;
+				case TEAM_GREEN: memcpy(goal, &redobelisk, sizeof(bot_goal_t)); memcpy(goal, &blueobelisk, sizeof(bot_goal_t)); break;
+				default: bs->ltgtype = 0; return qfalse;
 			}
 			//if not carrying any cubes
 			if (!BotHarvesterCarryingCubes(bs)) {
@@ -989,8 +997,9 @@ int BotGetLongTermGoal(bot_state_t *bs, int tfl, int retreat, bot_goal_t *goal) 
 				bs->teammessage_time = 0;
 			}
 			switch(BotTeam(bs)) {
-				case TEAM_RED: memcpy(goal, &blueobelisk, sizeof(bot_goal_t)); break;
-				case TEAM_BLUE: memcpy(goal, &redobelisk, sizeof(bot_goal_t)); break;
+				case TEAM_RED: memcpy(goal, &blueobelisk, sizeof(bot_goal_t)); memcpy(goal, &greenobelisk, sizeof(bot_goal_t)); break;
+				case TEAM_BLUE: memcpy(goal, &redobelisk, sizeof(bot_goal_t)); memcpy(goal, &greenobelisk, sizeof(bot_goal_t)); break;
+				case TEAM_GREEN: memcpy(goal, &redobelisk, sizeof(bot_goal_t)); memcpy(goal, &blueobelisk, sizeof(bot_goal_t)); break;
 				default: bs->ltgtype = 0; return qfalse;
 			}
 			//quit rushing after 2 minutes
@@ -1331,7 +1340,7 @@ void BotClearPath(bot_state_t *bs, bot_moveresult_t *moveresult) {
 	bsp_trace_t bsptrace;
 	entityState_t state;
 
-	// if there is a dead body wearing kamikze nearby
+	// if there is a dead body wearing kamikaze nearby
 	if (bs->kamikazebody) {
 		// if the bot's view angles and weapon are not used for movement
 		if ( !(moveresult->flags & (MOVERESULT_MOVEMENTVIEW | MOVERESULT_MOVEMENTWEAPON)) ) {
